@@ -1,0 +1,15 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             x:Class="Snippets.App.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <FontFamily x:Key="UiFont">avares://Snippets.App/Assets/Fonts/MonaSans.ttf#Mona Sans VF</FontFamily>
+        <FontFamily x:Key="MonoFont">avares://Snippets.App/Assets/Fonts/MonaspaceNeon.ttf#Monaspace Neon Var</FontFamily>
+    </Application.Resources>
+
+    <Application.Styles>
+        <sty:FluentAvaloniaTheme />
+    </Application.Styles>
+</Application>

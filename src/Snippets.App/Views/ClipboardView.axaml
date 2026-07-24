@@ -1,0 +1,149 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Snippets.App.ViewModels"
+             xmlns:ic="using:FluentIcons.Avalonia.Fluent"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+             x:Class="Snippets.App.Views.ClipboardView"
+             x:DataType="vm:ClipboardViewModel">
+  <UserControl.Styles>
+    <Style Selector="StackPanel.clipActions">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="Border.clipCard:pointerover StackPanel.clipActions">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Border.clipCard.armed StackPanel.clipActions">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="Button.clipRowButton">
+      <Setter Property="Padding" Value="4,2" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+    <Style Selector="ListBox.clipList">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.clipList ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Focusable" Value="False" />
+    </Style>
+    <Style Selector="ListBox.clipList ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBox.clipList ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,*">
+    <TextBlock Grid.Row="0" FontSize="28" FontWeight="SemiBold" Text="Clips" />
+    <TextBlock Grid.Row="1" Margin="0,4,0,0" Opacity="0.7" TextWrapping="Wrap"
+               Text="File-first clipboard watcher. Every new payload is written to the Clips workspace as a real file." />
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,16,0,0"
+                VerticalAlignment="Center">
+      <Button Click="OnPauseClick" ToolTip.Tip="{Binding PauseButtonText}">
+        <Panel>
+          <ic:SymbolIcon Symbol="Pause" FontSize="14" IsVisible="{Binding !IsPaused}" />
+          <ic:SymbolIcon Symbol="Play" FontSize="14" IsVisible="{Binding IsPaused}" />
+        </Panel>
+      </Button>
+      <Button Click="OnOpenFolderClick" ToolTip.Tip="Open folder">
+        <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+      </Button>
+      <Border Padding="8,4" CornerRadius="10" VerticalAlignment="Center"
+              Background="{DynamicResource ControlFillColorSecondaryBrush}">
+        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                   IsVisible="{Binding !IsPaused}"
+                   Fill="{DynamicResource SystemFillColorSuccessBrush}" />
+          <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                   IsVisible="{Binding IsPaused}"
+                   Fill="{DynamicResource SystemFillColorCautionBrush}" />
+          <TextBlock Text="{Binding WatcherStatusText}" FontSize="12" VerticalAlignment="Center" />
+        </StackPanel>
+      </Border>
+      <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="12"
+                 Text="{Binding AutoSavePath}" />
+    </StackPanel>
+
+    <ListBox Grid.Row="3" Margin="0,16,0,0"
+             Classes="clipList"
+             ItemsSource="{Binding Items}"
+             SelectionMode="Single"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <VirtualizingStackPanel />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:ClipCardViewModel">
+          <Border Classes="clipCard" Classes.armed="{Binding IsPendingDelete}" Padding="16" Margin="0,0,0,8"
+                  Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                  CornerRadius="6" BorderThickness="1"
+                  BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Border Grid.Column="0" Width="80" Height="64" Margin="0,0,12,0"
+                      IsVisible="{Binding HasThumbnail}"
+                      Background="{DynamicResource ControlAltFillColorTertiaryBrush}"
+                      CornerRadius="4">
+                <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
+              </Border>
+
+              <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding TimestampDisplay}" Opacity="0.6"
+                             FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                  <ic:SymbolIcon Symbol="Pin" IconVariant="Filled" FontSize="12"
+                                 IsVisible="{Binding IsPinned}" />
+                </StackPanel>
+                <TextBlock Text="{Binding HeadlineDisplay}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Preview}" Opacity="0.8"
+                           TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap" />
+              </StackPanel>
+
+              <StackPanel Grid.Column="2" Classes="clipActions"
+                          Orientation="Horizontal" Spacing="2"
+                          VerticalAlignment="Center">
+                <Button Classes="clipRowButton" Click="OnPinClick" ToolTip.Tip="{Binding PinButtonText}">
+                  <Panel>
+                    <ic:SymbolIcon Symbol="Pin" IconVariant="Regular" FontSize="14"
+                                   IsVisible="{Binding !IsPinned}" />
+                    <ic:SymbolIcon Symbol="PinOff" IconVariant="Regular" FontSize="14"
+                                   IsVisible="{Binding IsPinned}" />
+                  </Panel>
+                </Button>
+                <Button Classes="clipRowButton" Click="OnCopyClick" ToolTip.Tip="Copy">
+                  <ic:SymbolIcon Symbol="Copy" FontSize="14" />
+                </Button>
+                <Button Classes="clipRowButton" Click="OnRevealClick" ToolTip.Tip="Reveal">
+                  <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+                </Button>
+                <Button Classes="clipRowButton" Click="OnDeleteClick"
+                        IsVisible="{Binding ShowDeleteIdle}"
+                        ToolTip.Tip="Delete">
+                  <ic:SymbolIcon Symbol="Delete" FontSize="14" />
+                </Button>
+                <Button Classes="clipRowButton" Click="OnDeleteClick"
+                        IsVisible="{Binding ShowDeleteArmed}"
+                        Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}"
+                        Foreground="White"
+                        ToolTip.Tip="Click again to confirm delete">
+                  <ic:SymbolIcon Symbol="Delete" FontSize="14" />
+                </Button>
+              </StackPanel>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</UserControl>
