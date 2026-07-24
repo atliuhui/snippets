@@ -237,7 +237,7 @@ internal static class SnippetsYamlConfigParser
             ReadOptionalDuration(values.GetValueOrDefault("clips.dedupeCacheWindow"), defaults.Clips.DedupeCacheWindow));
         var notes = new NotesConfig(
             Expand(values.GetValueOrDefault("notes.drafts") ?? defaults.Notes.Drafts, variables));
-        var jobs = TryReadJobs(lines) ?? defaults.Jobs;
+        var jobs = TryReadJobs(lines, variables) ?? defaults.Jobs;
 
         return defaults with
         {
@@ -249,7 +249,9 @@ internal static class SnippetsYamlConfigParser
         };
     }
 
-    public static JobsConfig? TryReadJobs(IEnumerable<string> lines)
+    public static JobsConfig? TryReadJobs(
+        IEnumerable<string> lines,
+        IReadOnlyDictionary<string, string>? variables = null)
     {
         var jobsLines = ReadJobsBlock(lines).ToList();
         if (jobsLines.Count == 0)
@@ -344,7 +346,22 @@ internal static class SnippetsYamlConfigParser
         {
             if (current is not null)
             {
-                jobs.Add(current.Build());
+                var job = current.Build();
+                if (variables is not null && job.Action.Type == "command")
+                {
+                    job = job with
+                    {
+                        Action = job.Action with
+                        {
+                            Command = Expand(job.Action.Command ?? string.Empty, variables),
+                            CommandArgs = (job.Action.CommandArgs ?? [])
+                                .Select(argument => Expand(argument, variables))
+                                .ToArray()
+                        }
+                    };
+                }
+
+                jobs.Add(job);
             }
         }
     }

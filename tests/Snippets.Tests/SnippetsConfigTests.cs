@@ -50,9 +50,10 @@ public sealed class SnippetsConfigTests
                     type: manual
                   action:
                     type: command
-                    command: dotnet
+                    command: "${USERPROFILE}/tools/dotnet"
                     args:
                       - --version
+                      - "${workspace.root}/scripts/backup.ps1"
                     env:
                       NODE_ENV: production
                     timeout: 180s
@@ -70,8 +71,10 @@ public sealed class SnippetsConfigTests
         Assert.Equal("backup-daily", job.Id);
         Assert.Equal("manual", job.Trigger.Type);
         Assert.Equal("command", job.Action.Type);
-        Assert.Equal("dotnet", job.Action.Command);
-        Assert.Equal(["--version"], job.Action.CommandArgs);
+        Assert.Equal(Path.Combine(root, "tools", "dotnet"), job.Action.Command);
+        Assert.Equal(
+            ["--version", Path.Combine(root, "CustomSnippets", "scripts", "backup.ps1")],
+            job.Action.CommandArgs);
         Assert.Equal("production", job.Action.Env?["NODE_ENV"]);
         Assert.Equal(TimeSpan.FromSeconds(180), job.Action.Timeout);
 

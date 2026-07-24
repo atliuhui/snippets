@@ -220,6 +220,8 @@ enabled: true
 
 External commands use `command`:
 
+`command` and every `args` entry support `${USERPROFILE}`, `${LOCALAPPDATA}`, and `${workspace.root}` expansion.
+
 ```yaml
 id: backup-daily
 name: daily backup
