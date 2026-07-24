@@ -5,7 +5,6 @@ using System.Text;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using Snippets.Core.Clips;
 
 namespace Snippets.App.Services;
@@ -19,31 +18,35 @@ public sealed class ClipboardWatcher : IDisposable
 
     private readonly IClipboard _clipboard;
     private readonly ClipStore _store;
-    private readonly DispatcherTimer _timer;
     private byte[] _lastHash = [];
     private uint _lastSequence;
     private bool _polling;
     private bool _primed;
+    private bool _isRunning;
 
     public ClipboardWatcher(IClipboard clipboard, ClipStore store)
     {
         _clipboard = clipboard;
         _store = store;
-        _timer = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, OnTick);
     }
 
-    public bool IsRunning => _timer.IsEnabled;
+    public bool IsRunning => _isRunning;
 
     public event Action<ClipItem>? ItemSaved;
 
-    public void Start() => _timer.Start();
+    public void Start() => _isRunning = true;
 
-    public void Stop() => _timer.Stop();
+    public void Stop() => _isRunning = false;
 
-    public void Dispose() => _timer.Stop();
+    public void Dispose() => Stop();
 
-    private async void OnTick(object? sender, EventArgs e)
+    public async Task PollAsync()
     {
+        if (!_isRunning)
+        {
+            return;
+        }
+
         if (_polling)
         {
             return;
@@ -63,10 +66,11 @@ public sealed class ClipboardWatcher : IDisposable
                 _lastSequence = sequence;
             }
 
-            await PollAsync();
+            await PollCoreAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            throw new InvalidOperationException("Clipboard polling failed.", ex);
         }
         finally
         {
@@ -74,7 +78,7 @@ public sealed class ClipboardWatcher : IDisposable
         }
     }
 
-    private async Task PollAsync()
+    private async Task PollCoreAsync()
     {
         var (payload, kind) = await ReadCurrentAsync();
         if (payload is null)

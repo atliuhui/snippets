@@ -16,6 +16,8 @@ public sealed class NoteService
         _draftsDirectory = draftsDirectory;
     }
 
+    public string DraftsDirectory => _draftsDirectory;
+
     public async Task<NoteDocument> SaveAsync(string name, string content, CancellationToken cancellationToken = default)
     {
         var path = GetDraftPath(name);
@@ -30,6 +32,21 @@ public sealed class NoteService
         var content = await File.ReadAllTextAsync(path, cancellationToken);
         var updated = new DateTimeOffset(File.GetLastWriteTimeUtc(path), TimeSpan.Zero);
         return new NoteDocument(Path.GetFileName(path), path, content, updated);
+    }
+
+    public NoteDocument? TryRead(string name)
+    {
+        var path = GetDraftPath(name);
+        if (!File.Exists(path))
+        {
+            return null;
+        }
+
+        return new NoteDocument(
+            Path.GetFileName(path),
+            path,
+            File.ReadAllText(path),
+            new DateTimeOffset(File.GetLastWriteTimeUtc(path), TimeSpan.Zero));
     }
 
     public IReadOnlyList<NoteDocument> List()

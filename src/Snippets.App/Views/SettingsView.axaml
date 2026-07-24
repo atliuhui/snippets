@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Snippets.App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+             x:Class="Snippets.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,Auto,*">
+    <TextBlock Grid.Row="0" FontSize="28" FontWeight="SemiBold" Text="Settings" />
+    <TextBlock Grid.Row="1" Margin="0,4,0,0" Opacity="0.7" TextWrapping="Wrap"
+               Text="Control startup and tray behavior for this app." />
+
+    <StackPanel Grid.Row="2" Margin="0,20,0,0" Spacing="10">
+      <Border Padding="16"
+              Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+              CornerRadius="6" BorderThickness="1"
+              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="4">
+            <TextBlock Text="Start with system" FontSize="16" FontWeight="SemiBold" />
+            <TextBlock Text="Register Snippets in the current user's Windows startup items."
+                       Opacity="0.68" TextWrapping="Wrap" />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1"
+                        VerticalAlignment="Center"
+                        IsEnabled="{Binding !IsSaving}"
+                        IsChecked="{Binding IsStartWithSystemEnabled}"
+                        OnContent="On"
+                        OffContent="Off"
+                        Click="OnStartWithSystemClick" />
+        </Grid>
+      </Border>
+
+      <Border Padding="16"
+              Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+              CornerRadius="6" BorderThickness="1"
+              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="4">
+            <TextBlock Text="Show in system tray" FontSize="16" FontWeight="SemiBold" />
+            <TextBlock Text="Show or hide the Snippets tray icon while the app is running."
+                       Opacity="0.68" TextWrapping="Wrap" />
+          </StackPanel>
+          <ToggleSwitch Grid.Column="1"
+                        VerticalAlignment="Center"
+                        IsEnabled="{Binding !IsSaving}"
+                        IsChecked="{Binding IsTrayEnabled}"
+                        OnContent="On"
+                        OffContent="Off"
+                        Click="OnTrayClick" />
+        </Grid>
+      </Border>
+    </StackPanel>
+
+    <TextBlock Grid.Row="3" Margin="0,14,0,0"
+               Text="{Binding StatusText}"
+               IsVisible="{Binding HasStatus}"
+               Opacity="0.75"
+               TextWrapping="Wrap" />
+
+    <TextBlock Grid.Row="4" Margin="0,14,0,0"
+               Text="{Binding ConfigPath}"
+               FontFamily="{StaticResource MonoFont}"
+               FontSize="12"
+               Opacity="0.55"
+               TextWrapping="Wrap" />
+  </Grid>
+</UserControl>

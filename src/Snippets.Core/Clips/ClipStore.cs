@@ -99,9 +99,10 @@ public sealed class ClipStore
         }
     }
 
-    public int PruneAutoSave()
+    public int PruneAutoSave(int? maxAutoSave = null)
     {
-        if (MaxAutoSave <= 0)
+        var limit = maxAutoSave ?? MaxAutoSave;
+        if (limit <= 0)
         {
             return 0;
         }
@@ -111,7 +112,7 @@ public sealed class ClipStore
             .Where(file => ClipKindExtensions.FromExtension(file.Extension) != ClipKind.Unknown)
             .OrderBy(file => file.Name, StringComparer.Ordinal)
             .ToList();
-        var excess = files.Count - MaxAutoSave;
+        var excess = files.Count - limit;
         if (excess <= 0)
         {
             return 0;

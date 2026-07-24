@@ -16,7 +16,7 @@ Snippets provides a file-first Clipboard module:
 
 - Clipboard payloads are written to disk instead of being stored only in an application database.
 - Auto-saved items and favorite items are stored in separate directories.
-- It supports pausing the watcher, copying an item back to the clipboard, revealing the file, deleting, and pinning/unpinning.
+- It supports copying an item back to the clipboard, revealing the file, deleting, and pinning/unpinning.
 - Save paths and the auto-save limit are configurable.
 
 Snippets focuses on Clip, Note, and Jobs rather than file backup or software scanning.
@@ -28,7 +28,7 @@ Snippets focuses on Clip, Note, and Jobs rather than file backup or software sca
 3. **Low-friction capture**: Clipboard content is saved automatically, and notes are quick to create.
 4. **Separate maintenance from copying**: Notes let users maintain continuous, natural text while marking parts of that text as quick-copy snippets.
 5. **Unified Job Runner**: Clip polling, startup cleanup, manual actions, and external commands all use the same trigger + action model.
-6. **Tray-first access**: The app stays available in the system tray and provides quick-copy, job toggles, and common settings.
+6. **Tray-aware access**: The app can stay available in the system tray, reopen the main window, and expose a bounded Quick menu.
 
 ## Core concepts
 
@@ -75,7 +75,7 @@ Current scope:
 - Create, edit, and delete Markdown notes.
 - Mark copyable snippets inside notes with `data-copy-*` attributes.
 - Derive a Quick Copy list from notes.
-- Provide source editing, rendered preview, and a Quick Copy panel in the app.
+- Provide Source editing, rendered Preview, and a Quick panel in the app.
 
 Out of current scope:
 
@@ -159,9 +159,9 @@ The Quick Copy list should not become another manually maintained data source. I
 To make `data-copy-*` markers reliable to maintain, the app needs a copy-aware Markdown rendering experience:
 
 ```text
-+---------------- Note Editor ----------------+---- Quick Copy ----+
-| Markdown source                              | Full profile [Copy] |
-| Rendered preview with copy highlights        | Name         [Copy] |
++---------------- Note Editor ----------------+------ Quick ------+
+| Source                                       | Full profile [Copy] |
+| Rendered preview                            | Name         [Copy] |
 |                                              | Gender       [Copy] |
 |                                              | Phone        [Copy] |
 +----------------------------------------------+--------------------+
@@ -170,9 +170,9 @@ To make `data-copy-*` markers reliable to maintain, the app needs a copy-aware M
 Minimum interaction:
 
 - Edit the real `.md` content on the left.
-- Render Markdown in the preview and highlight nodes with `data-copy-id`.
-- Show all Quick Copy items derived from the current note in a right-side panel.
-- Clicking a copy badge in the preview or a button in the panel copies the corresponding normalized `innerText`.
+- Render Markdown in the preview.
+- Show all Quick Copy items derived from the current note in a right-side Quick panel.
+- Clicking a copy button in the Quick panel copies the corresponding normalized `innerText`.
 - If `data-copy-id` is duplicated, tags are not closed, or parsing fails, show the issue directly in the panel.
 
 ### Jobs
@@ -188,7 +188,7 @@ A trigger describes when a job runs:
 | `startup` | Runs once after the Snippets process starts and finishes initialization. If the app starts with the system, this naturally fires after login. |
 | `manual` | Does not run automatically. It can be triggered by the user, IPC, or a UI button. |
 | `interval` | Runs repeatedly at a fixed interval, for example every `1s`. |
-| `cron` | Runs from a cron expression. |
+| `cron` | Runs from a 5-field or 6-field cron expression. Six-field expressions include seconds, for example `*/2 * * * * *` runs every two seconds. |
 
 #### Action
 
@@ -238,24 +238,20 @@ enabled: true
 
 ### App and tray
 
-Snippets should stay available in the system tray, so users can perform frequent actions without opening the main window.
+Snippets can stay available in the system tray, so users can bring the main window back without relaunching the app and copy a small set of Quick items directly.
 
 Current tray menu scope:
 
-- Show or hide the main window.
-- Show a Quick Copy menu with commonly used items derived from Notes.
-- Copy a Quick Copy item directly from the tray menu.
-- Control job switches, such as enabling or pausing `clip-poll`.
-- Open Clips, Notes Drafts, and the settings UI.
+- Open the main window.
+- Read Quick items from `quick.md` in the Notes drafts directory and copy the clicked item.
+- Show up to `app.trayQuickLimit` Quick items in the tray menu; use the Notes page for the full list.
+- Rebuild the tray Quick menu after Notes are saved or refreshed.
 - Quit the app.
 
-The app provides a global settings UI covering the core `.snippets.yml` configuration:
+The current settings UI intentionally exposes only two app-level switches:
 
-- Workspace root.
-- Clip paths and `maxAutoSave`.
-- Notes Drafts path.
-- Jobs enabled state, per-job enabled state, and trigger/action configuration.
 - Start with system.
+- Show in tray.
 
 Start with system is an app-level capability, not a job trigger. When enabled, Snippets starts after system login. Once the process finishes initialization, jobs with a `startup` trigger run according to the Jobs rules.
 
@@ -263,8 +259,8 @@ Start with system is an app-level capability, not a job trigger. When enabled, S
 
 The default config file should live in the user's home directory:
 
-- Windows: `%USERPROFILE%\.snippets.yml`
-- macOS/Linux: `~/.snippets.yml`
+- Windows: `%USERPROFILE%\snippets-config.yml`
+- macOS/Linux: `~/snippets-config.yml`
 
 ```yaml
 schema: snippets-v1
@@ -275,6 +271,7 @@ workspace:
 app:
   tray: true
   startWithSystem: true
+  trayQuickLimit: 10
   logs: "${LOCALAPPDATA}/Snippets/logs"
 
 clips:
@@ -307,8 +304,6 @@ jobs:
       action:
         type: tool
         name: clip.prune
-        args:
-          maxAutoSave: 100
       enabled: true
 ```
 
@@ -322,11 +317,10 @@ jobs:
 - Provide Note create, edit, and delete.
 - Support `data-copy-*` markers in Notes for Quick Copy snippets.
 - Derive a Quick Copy list from Notes.
-- Support Note source editing, rendered preview, and Quick Copy panel.
+- Support Note source editing, rendered preview, and the Quick panel.
 - Support system tray residency.
-- Support the tray Quick Copy menu.
-- Support job toggles from the tray.
-- Support the global settings UI.
+- Support a bounded tray Quick menu sourced from `quick.md`.
+- Support the minimal settings UI for start with system and tray visibility.
 - Support start with system.
 - Support the local config file.
 - Support Jobs Runner by modeling Clip polling as a `trigger: interval` + `action: tool` job named `clip.poll`.

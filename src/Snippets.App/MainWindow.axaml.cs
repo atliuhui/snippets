@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Media;
 using FluentAvalonia.UI.Controls;
 using Snippets.App.ViewModels;
 using Snippets.App.Views;
@@ -11,6 +8,9 @@ namespace Snippets.App;
 public sealed partial class MainWindow : Window
 {
     private static ClipboardView? s_clipboardView;
+    private static NotesView? s_notesView;
+    private static JobsView? s_jobsView;
+    private static SettingsView? s_settingsView;
 
     private readonly Dictionary<string, Control> _pages;
 
@@ -21,18 +21,9 @@ public sealed partial class MainWindow : Window
         _pages = new Dictionary<string, Control>
         {
             ["clips"] = s_clipboardView = new ClipboardView(),
-            ["notes"] = CreatePage(
-                "Notes",
-                "Edit Markdown drafts and derive Quick Copy items from data-copy-* markers.",
-                "Source editing, rendered preview, and Quick Copy panel."),
-            ["jobs"] = CreatePage(
-                "Jobs",
-                "Manage trigger + action jobs such as clip.poll and clip.prune.",
-                "Tool actions run in-process; command actions run external processes."),
-            ["settings"] = CreatePage(
-                "Settings",
-                "Configure workspace root, clip paths, notes drafts, jobs, tray, and startup.",
-                "%USERPROFILE%\\.snippets.yml"),
+            ["notes"] = s_notesView = new NotesView(),
+            ["jobs"] = s_jobsView = new JobsView(),
+            ["settings"] = s_settingsView = new SettingsView(),
         };
 
         Nav.SelectedItem = Nav.MenuItems[0];
@@ -46,6 +37,30 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    internal static void AttachJobsViewModel(JobsViewModel viewModel)
+    {
+        if (s_jobsView is not null)
+        {
+            s_jobsView.DataContext = viewModel;
+        }
+    }
+
+    internal static void AttachNotesViewModel(NotesViewModel viewModel)
+    {
+        if (s_notesView is not null)
+        {
+            s_notesView.DataContext = viewModel;
+        }
+    }
+
+    internal static void AttachSettingsViewModel(SettingsViewModel viewModel)
+    {
+        if (s_settingsView is not null)
+        {
+            s_settingsView.DataContext = viewModel;
+        }
+    }
+
     private void OnNavSelectionChanged(object? sender, FANavigationViewSelectionChangedEventArgs e)
     {
         if (e.SelectedItem is FANavigationViewItem { Tag: string tag } && _pages.TryGetValue(tag, out var page))
@@ -54,48 +69,12 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private static Control CreatePage(string title, string description, string detail)
-    {
-        return new Border
-        {
-            Padding = new Avalonia.Thickness(28),
-            Child = new StackPanel
-            {
-                Spacing = 12,
-                VerticalAlignment = VerticalAlignment.Top,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = title,
-                        FontSize = 28,
-                        FontWeight = FontWeight.SemiBold
-                    },
-                    new TextBlock
-                    {
-                        Text = description,
-                        FontSize = 15,
-                        TextWrapping = TextWrapping.Wrap,
-                        Opacity = 0.88
-                    },
-                    new TextBlock
-                    {
-                        Text = detail,
-                        FontFamily = new FontFamily("avares://Snippets.App/Assets/Fonts/MonaspaceNeon.ttf#Monaspace Neon Var"),
-                        TextWrapping = TextWrapping.Wrap,
-                        Opacity = 0.72
-                    }
-                }
-            }
-        };
-    }
-
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         if (!App.IsShuttingDown)
         {
             e.Cancel = true;
-            Hide();
+            App.Quit();
             return;
         }
 

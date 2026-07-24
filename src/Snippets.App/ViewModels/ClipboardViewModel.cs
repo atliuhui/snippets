@@ -14,7 +14,6 @@ public sealed class ClipboardViewModel : INotifyPropertyChanged
 {
     private readonly ClipStore _store;
     private readonly IClipboard _clipboard;
-    private bool _isPaused;
 
     public ClipboardViewModel(ClipStore store, IClipboard clipboard)
     {
@@ -26,25 +25,6 @@ public sealed class ClipboardViewModel : INotifyPropertyChanged
 
     public ObservableCollection<ClipCardViewModel> Items { get; }
 
-    public bool IsPaused
-    {
-        get => _isPaused;
-        set
-        {
-            if (_isPaused == value)
-            {
-                return;
-            }
-
-            _isPaused = value;
-            OnChanged();
-            OnChanged(nameof(PauseButtonText));
-            OnChanged(nameof(WatcherStatusText));
-        }
-    }
-
-    public string PauseButtonText => IsPaused ? "Resume watcher" : "Pause watcher";
-    public string WatcherStatusText => IsPaused ? "Paused" : "Watching";
     public string AutoSavePath => _store.AutoSavePath;
 
     public void Reload()

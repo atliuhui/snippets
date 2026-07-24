@@ -1,0 +1,189 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Snippets.App.ViewModels"
+             xmlns:views="using:Snippets.App.Views"
+             xmlns:ic="using:FluentIcons.Avalonia.Fluent"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="620"
+             x:Class="Snippets.App.Views.NotesView"
+             x:DataType="vm:NotesViewModel">
+  <UserControl.Styles>
+    <Style Selector="ListBox.notesList">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBox.notesList ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+    <Style Selector="Button.armed">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,*">
+    <TextBlock Grid.Row="0" FontSize="28" FontWeight="SemiBold" Text="Notes" />
+    <TextBlock Grid.Row="1" Margin="0,4,0,0" Opacity="0.7" TextWrapping="Wrap"
+               Text="Edit Markdown drafts and derive Quick Copy items from data-copy-* markers." />
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,16,0,0"
+                VerticalAlignment="Center">
+      <Button Click="OnOpenFolderClick" ToolTip.Tip="Open drafts folder">
+        <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+      </Button>
+      <Button Click="OnRefreshClick" ToolTip.Tip="Refresh drafts">
+        <ic:SymbolIcon Symbol="ArrowClockwise" FontSize="14" />
+      </Button>
+      <Border Padding="8,4" CornerRadius="10" VerticalAlignment="Center"
+              IsVisible="{Binding IsDirty}"
+              Background="{DynamicResource ControlFillColorSecondaryBrush}">
+        <TextBlock Text="Unsaved changes" FontSize="12" />
+      </Border>
+      <TextBlock Text="{Binding StatusText}"
+                 IsVisible="{Binding HasStatus}"
+                 VerticalAlignment="Center"
+                 Opacity="0.65"
+                 FontSize="12" />
+    </StackPanel>
+
+    <Grid Grid.Row="3" Margin="0,16,0,0" ColumnDefinitions="220,*,280" ColumnSpacing="12">
+      <Border Grid.Column="0"
+              Padding="10"
+              Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+              CornerRadius="6" BorderThickness="1"
+              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="Drafts" FontWeight="SemiBold" Margin="0,0,0,8" />
+          <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,8,0,0">
+            <TextBox PlaceholderText="new note name"
+                     Text="{Binding NewNoteName, Mode=TwoWay}" />
+            <Button Grid.Column="1" Click="OnCreateClick" ToolTip.Tip="Create note">
+              <ic:SymbolIcon Symbol="Add" FontSize="14" />
+            </Button>
+          </Grid>
+          <ListBox Classes="notesList"
+                   ItemsSource="{Binding Notes}"
+                   SelectedItem="{Binding SelectedNote, Mode=TwoWay}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:NoteListItemViewModel">
+                <Border Padding="10"
+                        CornerRadius="6"
+                        Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding UpdatedText}" FontSize="11" Opacity="0.6" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Click="OnDeleteNoteClick"
+                            ToolTip.Tip="{Binding DeleteToolTip}"
+                            Classes.armed="{Binding IsPendingDelete}">
+                      <Panel>
+                        <ic:SymbolIcon Symbol="Dismiss" FontSize="14" IsVisible="{Binding !IsPendingDelete}" />
+                        <ic:SymbolIcon Symbol="Delete" FontSize="14" IsVisible="{Binding IsPendingDelete}" />
+                      </Panel>
+                    </Button>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <Grid Grid.Column="1" RowDefinitions="*,*" RowSpacing="12">
+        <Border Grid.Row="0"
+                Padding="10"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="6" BorderThickness="1"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+          <DockPanel>
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" Margin="0,0,0,8">
+              <TextBlock Text="Source" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <Button Grid.Column="1"
+                      Click="OnWrapSelectionClick"
+                      IsEnabled="{Binding HasSelectedNote}"
+                      ToolTip.Tip="Wrap selected text with a Quick Copy tag">
+                <ic:SymbolIcon Symbol="Tag" FontSize="14" />
+              </Button>
+              <Button Grid.Column="2"
+                      Click="OnSaveClick"
+                      IsEnabled="{Binding HasSelectedNote}"
+                      ToolTip.Tip="Save note">
+                <ic:SymbolIcon Symbol="Save" FontSize="14" />
+              </Button>
+            </Grid>
+            <views:MarkdownSourceEditor x:Name="SourceEditor"
+                                        IsEnabled="{Binding HasSelectedNote}"
+                                        Text="{Binding Content, Mode=TwoWay}" />
+          </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1"
+                Padding="10"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="6" BorderThickness="1"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="Preview" FontWeight="SemiBold" Margin="0,0,0,8" />
+            <views:MarkdownPreview Markdown="{Binding Content}" />
+          </DockPanel>
+        </Border>
+      </Grid>
+
+      <Border Grid.Column="2"
+              Padding="10"
+              Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+              CornerRadius="6" BorderThickness="1"
+              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="Quick" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+          <ItemsControl DockPanel.Dock="Top"
+                        ItemsSource="{Binding Issues}"
+                        IsVisible="{Binding HasIssues}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:QuickCopyIssueViewModel">
+                <Border Padding="8" Margin="0,0,0,6" CornerRadius="6"
+                        Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding LocationText}" FontSize="11" Opacity="0.7" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <ListBox Classes="notesList"
+                   ItemsSource="{Binding QuickCopyItems}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:QuickCopyItemViewModel">
+                <Border Padding="10" Margin="0,0,0,6" CornerRadius="6"
+                        Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="{Binding Label}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Id}" FontFamily="{StaticResource MonoFont}" FontSize="11" Opacity="0.65" />
+                      <TextBlock Text="{Binding Value}" MaxHeight="48" TextWrapping="Wrap" Opacity="0.75" />
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            Click="OnCopyQuickItemClick"
+                            ToolTip.Tip="Copy value"
+                            VerticalAlignment="Top">
+                      <ic:SymbolIcon Symbol="Copy" FontSize="14" />
+                    </Button>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -49,27 +49,9 @@
 
     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,16,0,0"
                 VerticalAlignment="Center">
-      <Button Click="OnPauseClick" ToolTip.Tip="{Binding PauseButtonText}">
-        <Panel>
-          <ic:SymbolIcon Symbol="Pause" FontSize="14" IsVisible="{Binding !IsPaused}" />
-          <ic:SymbolIcon Symbol="Play" FontSize="14" IsVisible="{Binding IsPaused}" />
-        </Panel>
-      </Button>
       <Button Click="OnOpenFolderClick" ToolTip.Tip="Open folder">
         <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
       </Button>
-      <Border Padding="8,4" CornerRadius="10" VerticalAlignment="Center"
-              Background="{DynamicResource ControlFillColorSecondaryBrush}">
-        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-          <Ellipse Width="8" Height="8" VerticalAlignment="Center"
-                   IsVisible="{Binding !IsPaused}"
-                   Fill="{DynamicResource SystemFillColorSuccessBrush}" />
-          <Ellipse Width="8" Height="8" VerticalAlignment="Center"
-                   IsVisible="{Binding IsPaused}"
-                   Fill="{DynamicResource SystemFillColorCautionBrush}" />
-          <TextBlock Text="{Binding WatcherStatusText}" FontSize="12" VerticalAlignment="Center" />
-        </StackPanel>
-      </Border>
       <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="12"
                  Text="{Binding AutoSavePath}" />
     </StackPanel>

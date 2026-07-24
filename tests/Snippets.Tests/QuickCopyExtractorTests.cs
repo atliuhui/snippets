@@ -21,9 +21,29 @@ public sealed class QuickCopyExtractorTests
 
         Assert.False(result.HasIssues);
         Assert.Equal(["profile.full", "profile.name", "profile.phone"], result.Items.Select(item => item.Id).ToArray());
-        Assert.Equal("Name: John Doe Phone: 13800000000", result.Items[0].Value);
+        Assert.Equal($"Name: John Doe{Environment.NewLine}Phone: 13800000000", result.Items[0].Value);
         Assert.Equal("Name", result.Items[1].Label);
         Assert.Equal("13800000000", result.Items[2].Value);
+    }
+
+    [Fact]
+    public void Extract_preserves_line_breaks_for_multiline_parent_items()
+    {
+        const string note = """
+            <span data-copy-id="all" data-copy-label="All">
+            Name: <span data-copy-id="name">Alice</span>
+            Gender: <span data-copy-id="gender">Female</span>
+            Phone: <span data-copy-id="phone">13800000000</span>
+            </span>
+            """;
+
+        var result = new QuickCopyExtractor().Extract(note, "profile.md", DateTimeOffset.UtcNow);
+
+        Assert.False(result.HasIssues);
+        Assert.Equal(
+            $"Name: Alice{Environment.NewLine}Gender: Female{Environment.NewLine}Phone: 13800000000",
+            result.Items[0].Value);
+        Assert.Equal("Alice", result.Items[1].Value);
     }
 
     [Fact]

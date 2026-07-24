@@ -115,7 +115,17 @@ public sealed class QuickCopyExtractor
     {
         var withoutTags = AnyTagRegex.Replace(source, string.Empty);
         var decoded = WebUtility.HtmlDecode(withoutTags);
-        return Regex.Replace(decoded, @"\s+", " ").Trim();
+        var lines = decoded
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n')
+            .Split('\n')
+            .Select(line => Regex.Replace(line, @"[ \t\f\v]+", " ").Trim())
+            .Where(line => line.Length > 0)
+            .ToArray();
+
+        return lines.Length > 1
+            ? string.Join(Environment.NewLine, lines)
+            : lines.FirstOrDefault() ?? string.Empty;
     }
 
     private readonly record struct OpenNode(

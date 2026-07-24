@@ -17,17 +17,6 @@ public partial class ClipboardView : UserControl
 
     private ClipboardViewModel? ViewModel => DataContext as ClipboardViewModel;
 
-    private void OnPauseClick(object? sender, RoutedEventArgs e)
-    {
-        if (ViewModel is null)
-        {
-            return;
-        }
-
-        ViewModel.IsPaused = !ViewModel.IsPaused;
-        App.ToggleClipboardWatcher(!ViewModel.IsPaused);
-    }
-
     private void OnOpenFolderClick(object? sender, RoutedEventArgs e)
     {
         if (ViewModel is null)
