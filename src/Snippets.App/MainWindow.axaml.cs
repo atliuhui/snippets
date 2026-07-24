@@ -74,7 +74,15 @@ public sealed partial class MainWindow : Window
         if (!App.IsShuttingDown)
         {
             e.Cancel = true;
-            App.Quit();
+            if (App.ShouldCloseToTray)
+            {
+                Hide();
+            }
+            else
+            {
+                App.Quit();
+            }
+
             return;
         }
 

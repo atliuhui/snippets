@@ -28,7 +28,7 @@ public sealed record SnippetsConfig(
     }
 
     public static SnippetsConfig SaveAppSettings(
-        bool tray,
+        bool closeToTray,
         bool startWithSystem,
         string? path = null,
         string? userProfile = null,
@@ -40,7 +40,7 @@ public sealed record SnippetsConfig(
             WriteDefaultConfig(CreateDefault(userProfile, localAppData), configPath);
         }
 
-        var lines = SnippetsYamlConfigParser.UpdateAppSettings(File.ReadAllLines(configPath), tray, startWithSystem);
+        var lines = SnippetsYamlConfigParser.UpdateAppSettings(File.ReadAllLines(configPath), closeToTray, startWithSystem);
         File.WriteAllLines(configPath, lines);
         return Load(configPath, userProfile, localAppData);
     }
@@ -54,7 +54,7 @@ public sealed record SnippetsConfig(
         return new SnippetsConfig(
             "snippets-v1",
             new WorkspaceConfig(root),
-            new AppConfig(true, true, AppConfig.DefaultTrayQuickLimit, Path.Combine(local, "Snippets", "logs")),
+            new AppConfig(false, false, AppConfig.DefaultTrayQuickLimit, Path.Combine(local, "Snippets", "logs")),
             new ClipsConfig(
                 Path.Combine(root, "Clips", "AutoSave"),
                 Path.Combine(root, "Clips", "Favorites"),
@@ -98,7 +98,7 @@ public sealed record SnippetsConfig(
               root: '${USERPROFILE}/Documents/Snippets'
 
             app:
-              tray: {{FormatBool(config.App.Tray)}}
+              closeToTray: {{FormatBool(config.App.CloseToTray)}}
               startWithSystem: {{FormatBool(config.App.StartWithSystem)}}
               trayQuickLimit: {{config.App.TrayQuickLimit}}
               logs: '${LOCALAPPDATA}/Snippets/logs'
@@ -146,7 +146,7 @@ public sealed record SnippetsConfig(
 
 internal static class SnippetsYamlConfigParser
 {
-    public static IReadOnlyList<string> UpdateAppSettings(IReadOnlyList<string> lines, bool tray, bool startWithSystem)
+    public static IReadOnlyList<string> UpdateAppSettings(IReadOnlyList<string> lines, bool closeToTray, bool startWithSystem)
     {
         var output = lines.ToList();
         var appIndex = output.FindIndex(line => line.Trim() == "app:");
@@ -154,7 +154,7 @@ internal static class SnippetsYamlConfigParser
         {
             output.Add(string.Empty);
             output.Add("app:");
-            output.Add($"  tray: {FormatBool(tray)}");
+            output.Add($"  closeToTray: {FormatBool(closeToTray)}");
             output.Add($"  startWithSystem: {FormatBool(startWithSystem)}");
             output.Add($"  trayQuickLimit: {AppConfig.DefaultTrayQuickLimit}");
             return output;
@@ -166,15 +166,15 @@ internal static class SnippetsYamlConfigParser
             appEnd++;
         }
 
-        var trayIndex = FindSectionKey(output, appIndex + 1, appEnd, "tray");
+        var closeToTrayIndex = FindSectionKey(output, appIndex + 1, appEnd, "closeToTray");
         var startupIndex = FindSectionKey(output, appIndex + 1, appEnd, "startWithSystem");
-        if (trayIndex >= 0)
+        if (closeToTrayIndex >= 0)
         {
-            output[trayIndex] = $"{LeadingWhitespace(output[trayIndex])}tray: {FormatBool(tray)}";
+            output[closeToTrayIndex] = $"{LeadingWhitespace(output[closeToTrayIndex])}closeToTray: {FormatBool(closeToTray)}";
         }
         else
         {
-            output.Insert(appIndex + 1, $"  tray: {FormatBool(tray)}");
+            output.Insert(appIndex + 1, $"  closeToTray: {FormatBool(closeToTray)}");
             appEnd++;
             if (startupIndex >= appIndex + 1)
             {
@@ -226,7 +226,7 @@ internal static class SnippetsYamlConfigParser
         variables["workspace.root"] = workspaceRoot;
 
         var app = new AppConfig(
-            ReadOptionalBool(values.GetValueOrDefault("app.tray"), defaults.App.Tray),
+            ReadOptionalBool(values.GetValueOrDefault("app.closeToTray"), defaults.App.CloseToTray),
             ReadOptionalBool(values.GetValueOrDefault("app.startWithSystem"), defaults.App.StartWithSystem),
             ReadPositiveInt(values.GetValueOrDefault("app.trayQuickLimit"), defaults.App.TrayQuickLimit),
             Expand(values.GetValueOrDefault("app.logs") ?? defaults.App.Logs, variables));
@@ -637,7 +637,7 @@ internal static class SnippetsYamlConfigParser
 
 public sealed record WorkspaceConfig(string Root);
 
-public sealed record AppConfig(bool Tray, bool StartWithSystem, int TrayQuickLimit, string Logs)
+public sealed record AppConfig(bool CloseToTray, bool StartWithSystem, int TrayQuickLimit, string Logs)
 {
     public const int DefaultTrayQuickLimit = 10;
 }

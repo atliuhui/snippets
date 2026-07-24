@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Snippets.App.ViewModels"
+             xmlns:ic="using:FluentIcons.Avalonia.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
              x:Class="Snippets.App.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
@@ -12,7 +13,16 @@
     <TextBlock Grid.Row="1" Margin="0,4,0,0" Opacity="0.7" TextWrapping="Wrap"
                Text="Control startup and tray behavior for this app." />
 
-    <StackPanel Grid.Row="2" Margin="0,20,0,0" Spacing="10">
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,16,0,0"
+                VerticalAlignment="Center">
+      <Button Click="OnOpenConfigFolderClick" ToolTip.Tip="Open config folder">
+        <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
+      </Button>
+      <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="12"
+                 Text="{Binding ConfigPath}" />
+    </StackPanel>
+
+    <StackPanel Grid.Row="3" Margin="0,20,0,0" Spacing="10">
       <Border Padding="16"
               Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
               CornerRadius="6" BorderThickness="1"
@@ -39,14 +49,14 @@
               BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel Spacing="4">
-            <TextBlock Text="Show in system tray" FontSize="16" FontWeight="SemiBold" />
-            <TextBlock Text="Show or hide the Snippets tray icon while the app is running."
+            <TextBlock Text="Keep running in system tray" FontSize="16" FontWeight="SemiBold" />
+            <TextBlock Text="When the window closes, keep Snippets in the tray instead of quitting."
                        Opacity="0.68" TextWrapping="Wrap" />
           </StackPanel>
           <ToggleSwitch Grid.Column="1"
                         VerticalAlignment="Center"
                         IsEnabled="{Binding !IsSaving}"
-                        IsChecked="{Binding IsTrayEnabled}"
+                        IsChecked="{Binding IsCloseToTrayEnabled}"
                         OnContent="On"
                         OffContent="Off"
                         Click="OnTrayClick" />
@@ -54,17 +64,10 @@
       </Border>
     </StackPanel>
 
-    <TextBlock Grid.Row="3" Margin="0,14,0,0"
+    <TextBlock Grid.Row="4" Margin="0,14,0,0"
                Text="{Binding StatusText}"
                IsVisible="{Binding HasStatus}"
                Opacity="0.75"
-               TextWrapping="Wrap" />
-
-    <TextBlock Grid.Row="4" Margin="0,14,0,0"
-               Text="{Binding ConfigPath}"
-               FontFamily="{StaticResource MonoFont}"
-               FontSize="12"
-               Opacity="0.55"
                TextWrapping="Wrap" />
   </Grid>
 </UserControl>

@@ -6,14 +6,14 @@ namespace Snippets.App.ViewModels;
 
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
-    private bool _isTrayEnabled;
+    private bool _isCloseToTrayEnabled;
     private bool _isStartWithSystemEnabled;
     private bool _isSaving;
     private string _statusText = string.Empty;
 
     public SettingsViewModel(SnippetsConfig config, string configPath)
     {
-        _isTrayEnabled = config.App.Tray;
+        _isCloseToTrayEnabled = config.App.CloseToTray;
         _isStartWithSystemEnabled = config.App.StartWithSystem;
         ConfigPath = configPath;
     }
@@ -21,17 +21,17 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public string ConfigPath { get; }
     public bool HasStatus => !string.IsNullOrWhiteSpace(StatusText);
 
-    public bool IsTrayEnabled
+    public bool IsCloseToTrayEnabled
     {
-        get => _isTrayEnabled;
+        get => _isCloseToTrayEnabled;
         private set
         {
-            if (_isTrayEnabled == value)
+            if (_isCloseToTrayEnabled == value)
             {
                 return;
             }
 
-            _isTrayEnabled = value;
+            _isCloseToTrayEnabled = value;
             OnChanged();
         }
     }
@@ -82,19 +82,19 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task SetTrayEnabledAsync(bool enabled)
+    public async Task SetCloseToTrayEnabledAsync(bool enabled)
     {
         await SaveAsync(enabled, IsStartWithSystemEnabled);
     }
 
     public async Task SetStartWithSystemEnabledAsync(bool enabled)
     {
-        await SaveAsync(IsTrayEnabled, enabled);
+        await SaveAsync(IsCloseToTrayEnabled, enabled);
     }
 
     public void Apply(SnippetsConfig config)
     {
-        IsTrayEnabled = config.App.Tray;
+        IsCloseToTrayEnabled = config.App.CloseToTray;
         IsStartWithSystemEnabled = config.App.StartWithSystem;
         StatusText = "Settings saved.";
     }
@@ -104,7 +104,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         StatusText = message;
     }
 
-    private async Task SaveAsync(bool tray, bool startWithSystem)
+    private async Task SaveAsync(bool closeToTray, bool startWithSystem)
     {
         if (IsSaving)
         {
@@ -114,13 +114,13 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         IsSaving = true;
         try
         {
-            var config = await App.UpdateAppSettingsAsync(tray, startWithSystem);
+            var config = await App.UpdateAppSettingsAsync(closeToTray, startWithSystem);
             Apply(config);
         }
         catch (Exception ex)
         {
             Fail(ex.Message);
-            OnChanged(nameof(IsTrayEnabled));
+            OnChanged(nameof(IsCloseToTrayEnabled));
             OnChanged(nameof(IsStartWithSystemEnabled));
         }
         finally

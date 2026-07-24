@@ -14,6 +14,8 @@ public sealed class SnippetsConfigTests
         Assert.EndsWith(@"Clips\AutoSave", config.Clips.AutoSave);
         Assert.EndsWith(@"Clips\Favorites", config.Clips.Favorites);
         Assert.EndsWith(@"Notes\Drafts", config.Notes.Drafts);
+        Assert.False(config.App.CloseToTray);
+        Assert.False(config.App.StartWithSystem);
         Assert.Equal(10, config.App.TrayQuickLimit);
         Assert.Contains(config.Jobs.Items, job => job.Id == "clip-poll" && job.Action.Name == "clip.poll");
         Assert.Contains(config.Jobs.Items, job => job.Id == "clip-prune" && job.Trigger.Type == "startup");
@@ -90,6 +92,8 @@ public sealed class SnippetsConfigTests
         var text = File.ReadAllText(configPath);
         Assert.Contains("schema: snippets-v1", text);
         Assert.Contains("${USERPROFILE}/Documents/Snippets", text);
+        Assert.Contains("closeToTray: false", text);
+        Assert.Contains("startWithSystem: false", text);
         Assert.Contains("trayQuickLimit: 10", text);
         Assert.Contains("name: clipboard cleaner", text);
         Assert.Contains(
@@ -130,7 +134,7 @@ public sealed class SnippetsConfigTests
     }
 
     [Fact]
-    public void SaveAppSettings_updates_tray_and_startup_values()
+    public void SaveAppSettings_updates_close_to_tray_and_startup_values()
     {
         var root = Path.Combine(Path.GetTempPath(), "SnippetsTests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
@@ -141,7 +145,7 @@ public sealed class SnippetsConfigTests
             schema: snippets-v1
 
             app:
-              tray: true
+              closeToTray: true
               startWithSystem: true
               logs: "${LOCALAPPDATA}/Snippets/logs"
 
@@ -158,17 +162,17 @@ public sealed class SnippetsConfigTests
             """);
 
         var config = SnippetsConfig.SaveAppSettings(
-            tray: false,
+            closeToTray: false,
             startWithSystem: false,
             path: configPath,
             userProfile: root,
             localAppData: Path.Combine(root, "LocalAppData"));
 
-        Assert.False(config.App.Tray);
+        Assert.False(config.App.CloseToTray);
         Assert.False(config.App.StartWithSystem);
         Assert.Equal(10, config.App.TrayQuickLimit);
         var text = File.ReadAllText(configPath);
-        Assert.Contains("tray: false", text);
+        Assert.Contains("closeToTray: false", text);
         Assert.Contains("startWithSystem: false", text);
         Assert.Contains("trayQuickLimit: 10", text);
         Assert.Contains("logs: \"${LOCALAPPDATA}/Snippets/logs\"", text);

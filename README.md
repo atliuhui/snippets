@@ -2,7 +2,7 @@
 
 Snippets is a standalone project that turns everyday short-form content into a local snippets library that is maintainable, quick to copy from, and driven by a Job Runner.
 
-It is not a full backup tool. It focuses on three high-frequency objects:
+It focuses on three high-frequency objects:
 
 | Area | Role | Description |
 |---|---|---|
@@ -159,12 +159,12 @@ The Quick Copy list should not become another manually maintained data source. I
 To make `data-copy-*` markers reliable to maintain, the app needs a copy-aware Markdown rendering experience:
 
 ```text
-+---------------- Note Editor ----------------+------ Quick ------+
-| Source                                       | Full profile [Copy] |
++---------------- Note Editor ----------------+------ Quick --------+
+| Source                                      | Full profile [Copy] |
 | Rendered preview                            | Name         [Copy] |
-|                                              | Gender       [Copy] |
-|                                              | Phone        [Copy] |
-+----------------------------------------------+--------------------+
+|                                             | Gender       [Copy] |
+|                                             | Phone        [Copy] |
++---------------------------------------------+---------------------+
 ```
 
 Minimum interaction:
@@ -238,7 +238,7 @@ enabled: true
 
 ### App and tray
 
-Snippets can stay available in the system tray, so users can bring the main window back without relaunching the app and copy a small set of Quick items directly.
+Snippets shows a tray icon while it is running, so users can bring the main window back and copy a small set of Quick items directly. If `app.closeToTray` is enabled, closing the main window hides it and keeps Snippets running in the tray; otherwise closing the main window quits the app.
 
 Current tray menu scope:
 
@@ -251,7 +251,7 @@ Current tray menu scope:
 The current settings UI intentionally exposes only two app-level switches:
 
 - Start with system.
-- Show in tray.
+- Keep running in system tray.
 
 Start with system is an app-level capability, not a job trigger. When enabled, Snippets starts after system login. Once the process finishes initialization, jobs with a `startup` trigger run according to the Jobs rules.
 
@@ -269,8 +269,8 @@ workspace:
   root: "${USERPROFILE}/Documents/Snippets"
 
 app:
-  tray: true
-  startWithSystem: true
+  closeToTray: false
+  startWithSystem: false
   trayQuickLimit: 10
   logs: "${LOCALAPPDATA}/Snippets/logs"
 
@@ -320,7 +320,7 @@ jobs:
 - Support Note source editing, rendered preview, and the Quick panel.
 - Support system tray residency.
 - Support a bounded tray Quick menu sourced from `quick.md`.
-- Support the minimal settings UI for start with system and tray visibility.
+- Support the minimal settings UI for start with system and close-to-tray behavior.
 - Support start with system.
 - Support the local config file.
 - Support Jobs Runner by modeling Clip polling as a `trigger: interval` + `action: tool` job named `clip.poll`.
@@ -329,9 +329,7 @@ jobs:
 
 ### Later enhancements
 
-- Export and sync jobs.
 - `Snippets.Mcp`: if external MCP clients need access to Core capabilities, build a separate MCP interface layer.
-- Global hotkeys.
 
 ## Suggested architecture
 

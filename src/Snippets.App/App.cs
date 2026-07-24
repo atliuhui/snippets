@@ -66,7 +66,7 @@ public sealed partial class App : Application
             window.Opened += (_, _) => StartClipboardWatcher(window.Clipboard);
             desktop.MainWindow = window;
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            ApplyTraySetting(s_config?.App.Tray == true);
+            EnsureTrayIcon();
             StartupService.SetStartWithSystem(s_config?.App.StartWithSystem == true);
         }
 
@@ -146,12 +146,14 @@ public sealed partial class App : Application
         }
     }
 
-    public static Task<SnippetsConfig> UpdateAppSettingsAsync(bool tray, bool startWithSystem)
+    public static bool ShouldCloseToTray => s_config?.App.CloseToTray == true;
+
+    public static Task<SnippetsConfig> UpdateAppSettingsAsync(bool closeToTray, bool startWithSystem)
     {
         StartupService.SetStartWithSystem(startWithSystem);
-        var config = SnippetsConfig.SaveAppSettings(tray, startWithSystem);
+        var config = SnippetsConfig.SaveAppSettings(closeToTray, startWithSystem);
         s_config = config;
-        ApplyTraySetting(config.App.Tray);
+        EnsureTrayIcon();
         return Task.FromResult(config);
     }
 
@@ -254,16 +256,8 @@ public sealed partial class App : Application
         return new WindowIcon(stream);
     }
 
-    private static void ApplyTraySetting(bool enabled)
+    private static void EnsureTrayIcon()
     {
-        if (!enabled)
-        {
-            s_trayIcon?.Dispose();
-            s_trayIcon = null;
-            s_trayQuickMenu = null;
-            return;
-        }
-
         if (s_trayIcon is not null)
         {
             s_trayIcon.IsVisible = true;

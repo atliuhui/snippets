@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -16,6 +18,31 @@ public partial class SettingsView : UserControl
 
     private SettingsViewModel? ViewModel => DataContext as SettingsViewModel;
 
+    private void OnOpenConfigFolderClick(object? sender, RoutedEventArgs e)
+    {
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        var directory = Path.GetDirectoryName(ViewModel.ConfigPath);
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            ViewModel.Fail("Cannot open the config folder because the config path is invalid.");
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+            Process.Start(new ProcessStartInfo(directory) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            ViewModel.Fail(ex.Message);
+        }
+    }
+
     private async void OnStartWithSystemClick(object? sender, RoutedEventArgs e)
     {
         if (ViewModel is not null && sender is ToggleSwitch toggle)
@@ -28,7 +55,7 @@ public partial class SettingsView : UserControl
     {
         if (ViewModel is not null && sender is ToggleSwitch toggle)
         {
-            await ViewModel.SetTrayEnabledAsync(toggle.IsChecked == true);
+            await ViewModel.SetCloseToTrayEnabledAsync(toggle.IsChecked == true);
         }
     }
 }
