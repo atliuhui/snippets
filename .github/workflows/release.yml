@@ -87,7 +87,7 @@ jobs:
             --configuration Release `
             --runtime "${{ matrix.runtime }}" `
             --no-restore `
-            --self-contained false `
+            --self-contained true `
             -p:PublishSingleFile=true `
             -p:Version="$env:APP_VERSION" `
             -p:AssemblyVersion="$env:ASM_VERSION" `
