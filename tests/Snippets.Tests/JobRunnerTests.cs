@@ -50,7 +50,7 @@ public sealed class JobRunnerTests
             "large-output",
             "large output",
             JobTriggerConfig.Manual(),
-            "powershell",
+            "pwsh",
             ["-NoProfile", "-Command", "$text = 'x' * 40000; Write-Output $text"]);
 
         var result = await runner.RunOnceAsync(job);
@@ -68,7 +68,7 @@ public sealed class JobRunnerTests
             "echo",
             "echo",
             JobTriggerConfig.Manual(),
-            "powershell",
+            "pwsh",
             ["-NoProfile", "-Command", "Write-Output ok"]);
 
         var startInfo = JobRunner.CreateCommandStartInfo(job, job.Action.Command!);
@@ -87,7 +87,7 @@ public sealed class JobRunnerTests
             "slow-command",
             "slow command",
             JobTriggerConfig.Manual(),
-            "powershell",
+            "pwsh",
             ["-NoProfile", "-Command", "Start-Sleep -Seconds 5"],
             timeout: TimeSpan.FromMilliseconds(100));
 
