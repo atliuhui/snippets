@@ -75,7 +75,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore solution
-        run: dotnet restore ./Snippets.slnx
+        run: dotnet restore ./Snippets.slnx --runtime ${{ matrix.runtime }}
 
       - name: Run unit tests
         run: dotnet test ./tests/Snippets.Tests/Snippets.Tests.csproj --configuration Release --no-restore --nologo
