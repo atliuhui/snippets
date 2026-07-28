@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "[0-9]*"
+      - "app-[0-9]*"
 
 permissions:
   contents: read
@@ -48,9 +48,9 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${env:GITHUB_REF_NAME}"
-          $rx = '^(\d+(?:\.\d+)+)(?:-([a-z][a-z0-9]*))?$'
+          $rx = '^app-(\d+(?:\.\d+)+)(?:-([a-z][a-z0-9]*))?$'
           if ($tag -cnotmatch $rx) {
-            Write-Error "Tag '$tag' does not match '{version}[-{suffix}]'."
+            Write-Error "Tag '$tag' does not match 'app-{version}[-{suffix}]'."
             exit 1
           }
 
@@ -138,9 +138,9 @@ jobs:
         shell: pwsh
         run: |
           $tag = "${env:GITHUB_REF_NAME}"
-          $rx = '^(\d+(?:\.\d+)+)(?:-([a-z][a-z0-9]*))?$'
+          $rx = '^app-(\d+(?:\.\d+)+)(?:-([a-z][a-z0-9]*))?$'
           if ($tag -cnotmatch $rx) {
-            Write-Error "Tag '$tag' does not match '{version}[-{suffix}]'."
+            Write-Error "Tag '$tag' does not match 'app-{version}[-{suffix}]'."
             exit 1
           }
 
