@@ -26,7 +26,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,Auto,*">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,*">
     <TextBlock Grid.Row="0" FontSize="28" FontWeight="SemiBold" Text="Jobs" />
     <TextBlock Grid.Row="1" Margin="0,4,0,0" Opacity="0.7" TextWrapping="Wrap"
                Text="Manage trigger + action jobs such as clip.poll and clip.prune." />
@@ -44,15 +44,15 @@
               Background="{DynamicResource ControlFillColorSecondaryBrush}">
         <TextBlock Text="{Binding SummaryText}" FontSize="12" />
       </Border>
+      <TextBlock Text="{Binding RefreshStatusText}"
+                 IsVisible="{Binding HasRefreshStatus}"
+                 VerticalAlignment="Center"
+                 Opacity="0.65"
+                 FontSize="12"
+                 TextWrapping="Wrap" />
     </StackPanel>
 
-    <TextBlock Grid.Row="3" Margin="0,10,0,0"
-               Text="{Binding RefreshStatusText}"
-               IsVisible="{Binding HasRefreshStatus}"
-               TextWrapping="Wrap"
-               Opacity="0.75" />
-
-    <ListBox Grid.Row="4" Margin="0,16,0,0"
+    <ListBox Grid.Row="3" Margin="0,16,0,0"
              Classes="jobList"
              ItemsSource="{Binding Jobs}"
              SelectionMode="Single"

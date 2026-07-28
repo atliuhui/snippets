@@ -23,7 +23,7 @@ internal static class StartupService
                 throw new InvalidOperationException("Cannot enable startup because the executable path is unknown.");
             }
 
-            key.SetValue(AppName, Quote(executable));
+            key.SetValue(AppName, $"{Quote(executable)} --minimized");
         }
         else
         {

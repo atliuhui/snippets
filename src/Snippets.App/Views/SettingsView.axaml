@@ -8,7 +8,7 @@
              x:Class="Snippets.App.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
 
-  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,Auto,*">
+  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto,*">
     <TextBlock Grid.Row="0" FontSize="28" FontWeight="SemiBold" Text="Settings" />
     <TextBlock Grid.Row="1" Margin="0,4,0,0" Opacity="0.7" TextWrapping="Wrap"
                Text="Control startup and tray behavior for this app." />
@@ -18,8 +18,12 @@
       <Button Click="OnOpenConfigFolderClick" ToolTip.Tip="Open config folder">
         <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
       </Button>
-      <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="12"
-                 Text="{Binding ConfigPath}" />
+      <TextBlock Text="{Binding StatusText}"
+                 IsVisible="{Binding HasStatus}"
+                 VerticalAlignment="Center"
+                 Opacity="0.65"
+                 FontSize="12"
+                 TextWrapping="Wrap" />
     </StackPanel>
 
     <StackPanel Grid.Row="3" Margin="0,20,0,0" Spacing="10">
@@ -30,7 +34,7 @@
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel Spacing="4">
             <TextBlock Text="Start with system" FontSize="16" FontWeight="SemiBold" />
-            <TextBlock Text="Register Snippets in the current user's Windows startup items."
+            <TextBlock Text="Register Snippets in the current user's Windows startup items and start it minimized to the tray."
                        Opacity="0.68" TextWrapping="Wrap" />
           </StackPanel>
           <ToggleSwitch Grid.Column="1"
@@ -62,12 +66,22 @@
                         Click="OnTrayClick" />
         </Grid>
       </Border>
+
+      <Border Padding="16"
+              Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+              CornerRadius="6" BorderThickness="1"
+              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+        <StackPanel Spacing="4">
+          <TextBlock Text="System IP addresses" FontSize="16" FontWeight="SemiBold" />
+          <TextBlock Text="Active local IPv4 addresses on this device."
+                     Opacity="0.68" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding SystemIpAddresses}"
+                     Margin="0,4,0,0"
+                     FontFamily="{StaticResource MonoFont}"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
     </StackPanel>
 
-    <TextBlock Grid.Row="4" Margin="0,14,0,0"
-               Text="{Binding StatusText}"
-               IsVisible="{Binding HasStatus}"
-               Opacity="0.75"
-               TextWrapping="Wrap" />
   </Grid>
 </UserControl>

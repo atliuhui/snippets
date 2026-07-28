@@ -255,7 +255,7 @@ The current settings UI intentionally exposes only two app-level switches:
 - Start with system.
 - Keep running in system tray.
 
-Start with system is an app-level capability, not a job trigger. When enabled, Snippets starts after system login. Once the process finishes initialization, jobs with a `startup` trigger run according to the Jobs rules.
+Start with system is an app-level capability, not a job trigger. When enabled, Snippets starts minimized to the system tray after system login. Once the process finishes initialization, jobs with a `startup` trigger run according to the Jobs rules.
 
 ## Configuration draft
 

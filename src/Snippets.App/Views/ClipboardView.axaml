@@ -52,8 +52,6 @@
       <Button Click="OnOpenFolderClick" ToolTip.Tip="Open folder">
         <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
       </Button>
-      <TextBlock VerticalAlignment="Center" Opacity="0.6" FontSize="12"
-                 Text="{Binding AutoSavePath}" />
     </StackPanel>
 
     <ListBox Grid.Row="3" Margin="0,16,0,0"

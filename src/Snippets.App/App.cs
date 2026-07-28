@@ -17,6 +17,7 @@ namespace Snippets.App;
 public sealed partial class App : Application
 {
     private const string TrayQuickNoteName = "quick.md";
+    private const string StartMinimizedArgument = "--minimized";
 
     public static bool IsShuttingDown { get; private set; }
 
@@ -63,11 +64,14 @@ public sealed partial class App : Application
                 MainWindow.AttachSettingsViewModel(SettingsViewModel);
             }
 
-            window.Opened += (_, _) => StartClipboardWatcher(window.Clipboard);
-            desktop.MainWindow = window;
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             EnsureTrayIcon();
             StartupService.SetStartWithSystem(s_config?.App.StartWithSystem == true);
+            StartClipboardWatcher(window.Clipboard);
+            if (!IsMinimizedLaunch())
+            {
+                desktop.MainWindow = window;
+            }
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -364,7 +368,18 @@ public sealed partial class App : Application
             return;
         }
 
+        if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.MainWindow = s_mainWindow;
+        }
+
         s_mainWindow.Show();
         s_mainWindow.Activate();
+    }
+
+    private static bool IsMinimizedLaunch()
+    {
+        return Environment.GetCommandLineArgs()
+            .Any(argument => string.Equals(argument, StartMinimizedArgument, StringComparison.OrdinalIgnoreCase));
     }
 }
