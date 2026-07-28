@@ -7,7 +7,7 @@ public sealed class SnippetsConfigTests
     [Fact]
     public void CreateDefault_matches_readme_storage_conventions()
     {
-        var config = SnippetsConfig.CreateDefault(@"C:\Users\Alice", @"C:\Users\Alice\AppData\Local");
+        var config = SnippetsConfig.CreateDefault(Path.Combine(@"C:\", "Users", "Alice"), Path.Combine(@"C:\", "Users", "Alice", "AppData", "Local"));
 
         Assert.Equal("snippets-v1", config.Schema);
         Assert.EndsWith(Path.Combine("Documents", "Snippets"), config.Workspace.Root);
@@ -19,7 +19,7 @@ public sealed class SnippetsConfigTests
         Assert.Equal(10, config.App.TrayQuickLimit);
         Assert.Contains(config.Jobs.Items, job => job.Id == "clip-poll" && job.Action.Name == "clip.poll");
         Assert.Contains(config.Jobs.Items, job => job.Id == "clip-prune" && job.Trigger.Type == "startup");
-        Assert.EndsWith(Path.Combine("Users", "Alice", "snippets-config.yml"), SnippetsConfig.DefaultConfigPath(@"C:\Users\Alice", @"C:\Users\Alice\AppData\Local"));
+        Assert.EndsWith(Path.Combine("Users", "Alice", "snippets-config.yml"), SnippetsConfig.DefaultConfigPath(Path.Combine(@"C:\", "Users", "Alice"), Path.Combine(@"C:\", "Users", "Alice", "AppData", "Local")));
     }
 
     [Fact]
