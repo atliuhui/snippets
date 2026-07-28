@@ -10,7 +10,7 @@ public sealed class SnippetsConfigTests
         var config = SnippetsConfig.CreateDefault(@"C:\Users\Alice", @"C:\Users\Alice\AppData\Local");
 
         Assert.Equal("snippets-v1", config.Schema);
-        Assert.EndsWith(@"Documents\Snippets", config.Workspace.Root);
+        Assert.EndsWith(@"Snippets", config.Workspace.Root);
         Assert.EndsWith(@"Clips\AutoSave", config.Clips.AutoSave);
         Assert.EndsWith(@"Clips\Favorites", config.Clips.Favorites);
         Assert.EndsWith(@"Notes\Drafts", config.Notes.Drafts);

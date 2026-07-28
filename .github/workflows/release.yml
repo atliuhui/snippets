@@ -61,7 +61,7 @@ jobs:
           "APP_VERSION=$appVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
           "ASM_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Set up .NET SDK
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
@@ -87,7 +87,7 @@ jobs:
             --configuration Release `
             --runtime "${{ matrix.runtime }}" `
             --no-restore `
-            --self-contained true `
+            --self-contained false `
             -p:PublishSingleFile=true `
             -p:Version="$env:APP_VERSION" `
             -p:AssemblyVersion="$env:ASM_VERSION" `
