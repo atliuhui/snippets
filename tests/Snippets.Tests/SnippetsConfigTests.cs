@@ -10,16 +10,16 @@ public sealed class SnippetsConfigTests
         var config = SnippetsConfig.CreateDefault(@"C:\Users\Alice", @"C:\Users\Alice\AppData\Local");
 
         Assert.Equal("snippets-v1", config.Schema);
-        Assert.EndsWith(@"Snippets", config.Workspace.Root);
-        Assert.EndsWith(@"Clips\AutoSave", config.Clips.AutoSave);
-        Assert.EndsWith(@"Clips\Favorites", config.Clips.Favorites);
-        Assert.EndsWith(@"Notes\Drafts", config.Notes.Drafts);
+        Assert.EndsWith(Path.Combine("Documents", "Snippets"), config.Workspace.Root);
+        Assert.EndsWith(Path.Combine("Clips", "AutoSave"), config.Clips.AutoSave);
+        Assert.EndsWith(Path.Combine("Clips", "Favorites"), config.Clips.Favorites);
+        Assert.EndsWith(Path.Combine("Notes", "Drafts"), config.Notes.Drafts);
         Assert.False(config.App.CloseToTray);
         Assert.False(config.App.StartWithSystem);
         Assert.Equal(10, config.App.TrayQuickLimit);
         Assert.Contains(config.Jobs.Items, job => job.Id == "clip-poll" && job.Action.Name == "clip.poll");
         Assert.Contains(config.Jobs.Items, job => job.Id == "clip-prune" && job.Trigger.Type == "startup");
-        Assert.EndsWith(@"Users\Alice\snippets-config.yml", SnippetsConfig.DefaultConfigPath(@"C:\Users\Alice", @"C:\Users\Alice\AppData\Local"));
+        Assert.EndsWith(Path.Combine("Users", "Alice", "snippets-config.yml"), SnippetsConfig.DefaultConfigPath(@"C:\Users\Alice", @"C:\Users\Alice\AppData\Local"));
     }
 
     [Fact]
