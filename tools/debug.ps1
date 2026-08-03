@@ -33,6 +33,24 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Initialize-DotNetCliHome {
+    if ($env:DOTNET_CLI_HOME) { return }
+
+    $dotnetHome = Join-Path ([System.IO.Path]::GetTempPath()) 'snippets-dotnet-cli-home'
+    New-Item -ItemType Directory -Path $dotnetHome -Force | Out-Null
+    $env:DOTNET_CLI_HOME = $dotnetHome
+}
+
+if (-not $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE) {
+    $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = '1'
+}
+
+if (-not $env:DOTNET_CLI_TELEMETRY_OPTOUT) {
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
+}
+
+Initialize-DotNetCliHome
+
 function Fail($Message) {
     Write-Host "ERROR: $Message" -ForegroundColor Red
     exit 1

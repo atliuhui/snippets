@@ -81,6 +81,7 @@ jobs:
         run: dotnet test ./tests/Snippets.Tests/Snippets.Tests.csproj --configuration Release --no-restore --nologo
 
       - name: Publish application
+        if: ${{ !startsWith(matrix.runtime, 'osx-') }}
         shell: pwsh
         run: |
           dotnet publish ./src/Snippets.App/Snippets.App.csproj `
@@ -89,6 +90,7 @@ jobs:
             --no-restore `
             --self-contained true `
             -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:Version="$env:APP_VERSION" `
             -p:AssemblyVersion="$env:ASM_VERSION" `
             -p:FileVersion="$env:ASM_VERSION" `
@@ -97,6 +99,24 @@ jobs:
             -p:DebugSymbols=false `
             -p:DebugType=None `
             --output "publish/${{ matrix.runtime }}"
+
+          if ($IsWindows) {
+            Get-ChildItem "publish/${{ matrix.runtime }}" -Filter '*.pdb' -File -ErrorAction SilentlyContinue |
+              Remove-Item -Force
+          }
+
+      - name: Publish macOS app bundle
+        if: ${{ startsWith(matrix.runtime, 'osx-') }}
+        shell: pwsh
+        run: |
+          ./tools/build.ps1 `
+            -Runtime "${{ matrix.runtime }}" `
+            -SelfContained `
+            -NoRestore `
+            -Version "$env:APP_VERSION" `
+            -AssemblyVersion "$env:ASM_VERSION" `
+            -FileVersion "$env:ASM_VERSION" `
+            -InformationalVersion "$env:APP_VERSION"
 
       - name: Package Windows artifact
         if: ${{ startsWith(matrix.runtime, 'win-') }}
@@ -108,12 +128,19 @@ jobs:
             -DestinationPath "artifacts/${{ matrix.artifact }}" `
             -Force
 
-      - name: Package Unix artifact
-        if: ${{ !startsWith(matrix.runtime, 'win-') }}
+      - name: Package Linux artifact
+        if: ${{ startsWith(matrix.runtime, 'linux-') }}
         shell: bash
         run: |
           mkdir -p artifacts
           tar -czf "artifacts/${{ matrix.artifact }}" -C "publish/${{ matrix.runtime }}" .
+
+      - name: Package macOS app bundle
+        if: ${{ startsWith(matrix.runtime, 'osx-') }}
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          tar -czf "artifacts/${{ matrix.artifact }}" -C "dist/${{ matrix.runtime }}" Snippets.app
 
       - name: Upload packaged artifact
         uses: actions/upload-artifact@v6
