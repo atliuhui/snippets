@@ -234,6 +234,16 @@ function New-MacOSAppBundle {
 "@
         Set-Content -LiteralPath (Join-Path $contentsDir 'Info.plist') -Value $infoPlist -Encoding utf8
 
+        & codesign --force --deep --sign - $bundleRoot
+        if ($LASTEXITCODE -ne 0) {
+            throw "Could not sign macOS app bundle at $bundleRoot."
+        }
+
+        & codesign --verify --deep --strict $bundleRoot
+        if ($LASTEXITCODE -ne 0) {
+            throw "macOS app bundle signature verification failed for $bundleRoot."
+        }
+
         Write-Host "==> Created macOS app bundle: $bundleRoot" -ForegroundColor Cyan
     }
     finally {

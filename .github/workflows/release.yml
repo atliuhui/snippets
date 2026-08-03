@@ -109,14 +109,16 @@ jobs:
         if: ${{ startsWith(matrix.runtime, 'osx-') }}
         shell: pwsh
         run: |
-          ./tools/build.ps1 `
-            -Runtime "${{ matrix.runtime }}" `
-            -SelfContained `
-            -NoRestore `
-            -Version "$env:APP_VERSION" `
-            -AssemblyVersion "$env:ASM_VERSION" `
-            -FileVersion "$env:ASM_VERSION" `
-            -InformationalVersion "$env:APP_VERSION"
+          $buildArgs = @{
+            Runtime = "${{ matrix.runtime }}"
+            SelfContained = $true
+            NoRestore = $true
+            Version = $env:APP_VERSION
+            AssemblyVersion = $env:ASM_VERSION
+            FileVersion = $env:ASM_VERSION
+            InformationalVersion = $env:APP_VERSION
+          }
+          & ./tools/build.ps1 @buildArgs
 
       - name: Package Windows artifact
         if: ${{ startsWith(matrix.runtime, 'win-') }}

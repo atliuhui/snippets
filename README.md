@@ -2,6 +2,19 @@
 
 Snippets is a standalone project that turns everyday short-form content into a local snippets library that is maintainable, quick to copy from, and driven by a Job Runner.
 
+## macOS release signing
+
+The release workflow produces Windows, Linux, and macOS artifacts when an `app-{version}` tag is pushed. Without an Apple Developer Program membership, the macOS artifacts use an ad-hoc signature and remain runnable, but Gatekeeper will require a manual first-run approval.
+
+After extracting the release archive, users can either Control-click `Snippets.app` and choose **Open**, or run:
+
+```bash
+xattr -dr com.apple.quarantine Snippets.app
+open Snippets.app
+```
+
+The project does not use Developer ID signing or Apple notarization.
+
 It focuses on three high-frequency objects:
 
 | Area | Role | Description |
