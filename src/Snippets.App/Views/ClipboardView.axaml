@@ -3,7 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Snippets.App.ViewModels"
-             xmlns:views="using:Snippets.App.Views"
              xmlns:ic="using:FluentIcons.Avalonia.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
              x:Class="Snippets.App.Views.ClipboardView"
@@ -59,6 +58,7 @@
              Classes="clipList"
              ItemsSource="{Binding Items}"
              SelectionMode="Single"
+             ClipToBounds="True"
              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
@@ -70,7 +70,8 @@
           <Border Classes="clipCard" Classes.armed="{Binding IsPendingDelete}" Padding="16" Margin="0,0,0,8"
                   Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                   CornerRadius="6" BorderThickness="1"
-                  BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                  BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                  ClipToBounds="True">
             <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Top">
               <Border Grid.Column="0" Width="160" Height="90" Margin="0,0,12,0"
                       IsVisible="{Binding HasThumbnail}"
@@ -84,10 +85,24 @@
                       Background="{DynamicResource ControlAltFillColorTertiaryBrush}"
                       CornerRadius="4"
                       ClipToBounds="True">
-                <views:HtmlPreview Html="{Binding HtmlPreview}" Width="160" Height="90" />
+                <Grid RowDefinitions="Auto,*">
+                  <Border Grid.Row="0" Margin="6,6,6,0" Padding="4,2"
+                          Background="#111315"
+                          CornerRadius="3"
+                          HorizontalAlignment="Left">
+                    <TextBlock Text="html" FontSize="9" FontWeight="SemiBold" Opacity="0.7" />
+                  </Border>
+                  <TextBlock Grid.Row="1" Margin="8,6,8,8"
+                             Text="{Binding Preview}"
+                             FontFamily="{StaticResource MonoFont}"
+                             FontSize="10"
+                             TextWrapping="Wrap"
+                             TextTrimming="CharacterEllipsis"
+                             Opacity="0.8" />
+                </Grid>
               </Border>
 
-              <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
+              <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top" ZIndex="1">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock Text="{Binding TimestampDisplay}" Opacity="0.6"
                              FontFamily="{StaticResource MonoFont}" FontSize="12" />
@@ -114,6 +129,9 @@
                 </Button>
                 <Button Classes="clipRowButton" Click="OnCopyClick" ToolTip.Tip="{Binding CopyButtonText}">
                   <ic:SymbolIcon Symbol="Copy" FontSize="14" />
+                </Button>
+                <Button Classes="clipRowButton" Click="OnOpenClick" ToolTip.Tip="Open with default application">
+                  <ic:SymbolIcon Symbol="Open" FontSize="14" />
                 </Button>
                 <Button Classes="clipRowButton" Click="OnDeleteClick"
                         IsVisible="{Binding ShowDeleteIdle}"

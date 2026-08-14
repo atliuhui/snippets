@@ -42,6 +42,23 @@ public partial class ClipboardView : UserControl
 
     private void OnCopyClick(object? sender, RoutedEventArgs e) => CardFrom(sender)?.CopyBack();
 
+    private void OnOpenClick(object? sender, RoutedEventArgs e)
+    {
+        var card = CardFrom(sender);
+        if (card is null)
+        {
+            return;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(card.Item.FilePath) { UseShellExecute = true });
+        }
+        catch
+        {
+        }
+    }
+
     private void OnDeleteClick(object? sender, RoutedEventArgs e)
     {
         var card = CardFrom(sender);

@@ -213,8 +213,6 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    public string HtmlPreview => _item.Kind == ClipKind.Html ? ReadAllText(_item.FilePath) : string.Empty;
-
     internal void UpdateItem(ClipItem updated)
     {
         _item = updated;
@@ -269,11 +267,6 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
-    private static string ReadAllText(string path)
-    {
-        return File.ReadAllText(path, Encoding.UTF8);
-    }
-
     private static string ReadHead(string path)
     {
         var buffer = new char[TextPreviewChars];
@@ -296,8 +289,21 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
 
     private static string ExtractVisibleText(string source)
     {
-        var noTags = Regex.Replace(source, "<[^>]+>", string.Empty, RegexOptions.CultureInvariant);
-        return WebUtility.HtmlDecode(noTags).Replace('\r', ' ').Replace('\n', ' ').Trim();
+        var normalized = Regex.Replace(
+            source,
+            "(?is)<!--.*?-->|<br\\s*/?>|</?(div|p|li|ul|ol|tr|table|h[1-6]|blockquote|pre)[^>]*>",
+            "\n");
+        var noTags = Regex.Replace(normalized, "<[^>]+>", string.Empty, RegexOptions.CultureInvariant | RegexOptions.Singleline);
+        var lines = WebUtility.HtmlDecode(noTags)
+            .Replace('\u00A0', ' ')
+            .Replace("\r\n", "\n")
+            .Replace('\r', '\n')
+            .Split('\n')
+            .Select(line => line.TrimEnd())
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Take(3);
+
+        return string.Join("\n", lines);
     }
 
     private static string FormatBytes(long bytes)
