@@ -192,46 +192,59 @@ public sealed class ClipboardWatcher : IDisposable
 
     private static byte[] StripCfHtmlHeader(byte[] bytes)
     {
-        if (bytes.Length < 8 || !StartsWithAscii(bytes, "Version:"))
+        if (bytes.Length < 8)
         {
             return bytes;
         }
 
-        var header = Encoding.ASCII.GetString(bytes, 0, Math.Min(bytes.Length, 1024));
-        var start = ParseOffset(header, "StartFragment:");
-        var end = ParseOffset(header, "EndFragment:");
-        if (start > 0 && end > start && end <= bytes.Length)
+        var text = DecodeHtmlText(bytes);
+        if (!text.Contains("Version:", StringComparison.OrdinalIgnoreCase) &&
+            !text.Contains("StartHTML:", StringComparison.OrdinalIgnoreCase))
         {
-            var length = end - start;
-            var slice = new byte[length];
-            Buffer.BlockCopy(bytes, start, slice, 0, length);
-            return slice;
+            return bytes;
         }
 
-        return bytes;
+        var start = ParseOffset(text, "StartFragment:");
+        var end = ParseOffset(text, "EndFragment:");
+        if (start >= 0 && end > start)
+        {
+            var fragment = text.Substring(start, end - start);
+            return Encoding.UTF8.GetBytes(fragment);
+        }
+
+        return Encoding.UTF8.GetBytes(text);
     }
 
-    private static bool StartsWithAscii(byte[] bytes, string prefix)
+    private static string DecodeHtmlText(byte[] bytes)
     {
-        if (bytes.Length < prefix.Length)
+        if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
         {
-            return false;
+            return Encoding.Unicode.GetString(bytes);
         }
 
-        for (var index = 0; index < prefix.Length; index++)
+        if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF)
         {
-            if (bytes[index] != (byte)prefix[index])
-            {
-                return false;
-            }
+            return Encoding.BigEndianUnicode.GetString(bytes);
         }
 
-        return true;
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+        {
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        try
+        {
+            return Encoding.UTF8.GetString(bytes);
+        }
+        catch
+        {
+            return Encoding.Unicode.GetString(bytes);
+        }
     }
 
-    private static int ParseOffset(string header, string key)
+    private static int ParseOffset(string text, string key)
     {
-        var index = header.IndexOf(key, StringComparison.Ordinal);
+        var index = text.IndexOf(key, StringComparison.OrdinalIgnoreCase);
         if (index < 0)
         {
             return -1;
@@ -239,12 +252,12 @@ public sealed class ClipboardWatcher : IDisposable
 
         var start = index + key.Length;
         var end = start;
-        while (end < header.Length && char.IsDigit(header[end]))
+        while (end < text.Length && char.IsDigit(text[end]))
         {
             end++;
         }
 
-        return end > start && int.TryParse(header.AsSpan(start, end - start), out var value)
+        return end > start && int.TryParse(text.Substring(start, end - start), out var value)
             ? value
             : -1;
     }

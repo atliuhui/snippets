@@ -29,7 +29,7 @@ Snippets provides a file-first Clipboard module:
 
 - Clipboard payloads are written to disk instead of being stored only in an application database.
 - Auto-saved items and favorite items are stored in separate directories.
-- It supports copying an item back to the clipboard, revealing the file, deleting, and pinning/unpinning.
+- It supports copying an item back to the clipboard, deleting, and pinning/unpinning; HTML items copy as plain text.
 - Save paths and the auto-save limit are configurable.
 
 Snippets focuses on Clip, Note, and Jobs rather than file backup or software scanning.
@@ -64,7 +64,7 @@ Current capabilities:
 
 - Watch clipboard changes automatically.
 - Support text, HTML, images, and file lists.
-- Support favorite, delete, copy back to clipboard, and reveal in file manager.
+- Support favorite, delete, and copy back to clipboard; HTML items are copied as plain text.
 - Support a maximum auto-save count and cleanup behavior.
 - Support deduplication by default: compare the current clipboard payload hash with the last saved payload hash to avoid consecutive duplicates.
 - Optionally support cache-window deduplication: within a configured time window, content hashes that were already saved are not saved again.

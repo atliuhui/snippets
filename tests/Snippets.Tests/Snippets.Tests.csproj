@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Snippets.Core\Snippets.Core.csproj" />
+    <ProjectReference Include="..\..\src\Snippets.App\Snippets.App.csproj" />
   </ItemGroup>
 
 </Project>

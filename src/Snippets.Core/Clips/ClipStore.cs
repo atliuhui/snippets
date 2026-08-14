@@ -50,7 +50,8 @@ public sealed class ClipStore
 
     public ClipItem Save(byte[] payload, ClipKind kind, DateTime timestampUtc)
     {
-        var name = FormatFileName(timestampUtc, kind);
+        var localTimestamp = timestampUtc.Kind == DateTimeKind.Utc ? timestampUtc.ToLocalTime() : timestampUtc;
+        var name = FormatFileName(localTimestamp, kind);
         var full = Path.Combine(AutoSavePath, name);
         File.WriteAllBytes(full, payload);
         return new ClipItem(full, timestampUtc, kind, payload.LongLength, IsPinned: false);
@@ -58,8 +59,9 @@ public sealed class ClipStore
 
     public async Task<ClipItem> SaveAutoAsync(ClipPayload payload, DateTimeOffset? now = null, CancellationToken cancellationToken = default)
     {
-        var timestampUtc = (now ?? DateTimeOffset.UtcNow).UtcDateTime;
-        var name = FormatFileName(timestampUtc, payload.Kind);
+        var capturedAt = now ?? DateTimeOffset.Now;
+        var timestampUtc = capturedAt.UtcDateTime;
+        var name = FormatFileName(capturedAt.LocalDateTime, payload.Kind);
         var full = Path.Combine(AutoSavePath, name);
         await File.WriteAllBytesAsync(full, payload.Content, cancellationToken);
         return new ClipItem(full, timestampUtc, payload.Kind, payload.Content.LongLength, IsPinned: false);
@@ -157,21 +159,26 @@ public sealed class ClipStore
         }
     }
 
-    private static string FormatFileName(DateTime timestampUtc, ClipKind kind)
+    private static string FormatFileName(DateTime timestamp, ClipKind kind)
     {
-        var stamp = timestampUtc.ToString("yyyy-MM-ddTHH-mm-ss-fff", System.Globalization.CultureInfo.InvariantCulture);
+        var localTimestamp = timestamp.Kind == DateTimeKind.Utc ? timestamp.ToLocalTime() : timestamp;
+        var stamp = localTimestamp.ToString("yyyy-MM-ddTHH-mm-ss-fff", System.Globalization.CultureInfo.InvariantCulture);
         return stamp + kind.Extension();
     }
 
     private static DateTime? TryParseTimestamp(string stem)
     {
-        return DateTime.TryParseExact(
-            stem,
-            "yyyy-MM-ddTHH-mm-ss-fff",
-            System.Globalization.CultureInfo.InvariantCulture,
-            System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
-            out var value)
-            ? value
-            : null;
+        if (!DateTime.TryParseExact(
+                stem,
+                "yyyy-MM-ddTHH-mm-ss-fff",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out var value))
+        {
+            return null;
+        }
+
+        var localTimestamp = value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(value, DateTimeKind.Local) : value;
+        return localTimestamp.ToUniversalTime();
     }
 }

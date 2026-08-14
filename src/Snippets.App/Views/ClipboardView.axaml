@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Snippets.App.ViewModels"
+             xmlns:views="using:Snippets.App.Views"
              xmlns:ic="using:FluentIcons.Avalonia.Fluent"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
              x:Class="Snippets.App.Views.ClipboardView"
@@ -70,15 +71,23 @@
                   Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                   CornerRadius="6" BorderThickness="1"
                   BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <Border Grid.Column="0" Width="80" Height="64" Margin="0,0,12,0"
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Top">
+              <Border Grid.Column="0" Width="160" Height="90" Margin="0,0,12,0"
                       IsVisible="{Binding HasThumbnail}"
                       Background="{DynamicResource ControlAltFillColorTertiaryBrush}"
-                      CornerRadius="4">
+                      CornerRadius="4"
+                      ClipToBounds="True">
                 <Image Source="{Binding Thumbnail}" Stretch="Uniform" />
               </Border>
+              <Border Grid.Column="0" Width="160" Height="90" Margin="0,0,12,0"
+                      IsVisible="{Binding IsHtml}"
+                      Background="{DynamicResource ControlAltFillColorTertiaryBrush}"
+                      CornerRadius="4"
+                      ClipToBounds="True">
+                <views:HtmlPreview Html="{Binding HtmlPreview}" Width="160" Height="90" />
+              </Border>
 
-              <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+              <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Top">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock Text="{Binding TimestampDisplay}" Opacity="0.6"
                              FontFamily="{StaticResource MonoFont}" FontSize="12" />
@@ -87,12 +96,14 @@
                 </StackPanel>
                 <TextBlock Text="{Binding HeadlineDisplay}" FontWeight="SemiBold" />
                 <TextBlock Text="{Binding Preview}" Opacity="0.8"
-                           TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap" />
+                           IsVisible="{Binding !IsHtml}"
+                           FontFamily="{StaticResource MonoFont}"
+                           TextTrimming="CharacterEllipsis" MaxLines="3" TextWrapping="Wrap" />
               </StackPanel>
 
               <StackPanel Grid.Column="2" Classes="clipActions"
                           Orientation="Horizontal" Spacing="2"
-                          VerticalAlignment="Center">
+                          VerticalAlignment="Top">
                 <Button Classes="clipRowButton" Click="OnPinClick" ToolTip.Tip="{Binding PinButtonText}">
                   <Panel>
                     <ic:SymbolIcon Symbol="Pin" IconVariant="Regular" FontSize="14"
@@ -101,11 +112,8 @@
                                    IsVisible="{Binding IsPinned}" />
                   </Panel>
                 </Button>
-                <Button Classes="clipRowButton" Click="OnCopyClick" ToolTip.Tip="Copy">
+                <Button Classes="clipRowButton" Click="OnCopyClick" ToolTip.Tip="{Binding CopyButtonText}">
                   <ic:SymbolIcon Symbol="Copy" FontSize="14" />
-                </Button>
-                <Button Classes="clipRowButton" Click="OnRevealClick" ToolTip.Tip="Reveal">
-                  <ic:SymbolIcon Symbol="FolderOpen" FontSize="14" />
                 </Button>
                 <Button Classes="clipRowButton" Click="OnDeleteClick"
                         IsVisible="{Binding ShowDeleteIdle}"

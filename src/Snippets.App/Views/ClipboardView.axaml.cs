@@ -42,8 +42,6 @@ public partial class ClipboardView : UserControl
 
     private void OnCopyClick(object? sender, RoutedEventArgs e) => CardFrom(sender)?.CopyBack();
 
-    private void OnRevealClick(object? sender, RoutedEventArgs e) => CardFrom(sender)?.Reveal();
-
     private void OnDeleteClick(object? sender, RoutedEventArgs e)
     {
         var card = CardFrom(sender);

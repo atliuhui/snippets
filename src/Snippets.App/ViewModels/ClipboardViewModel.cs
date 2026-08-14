@@ -1,8 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -68,7 +69,7 @@ public sealed class ClipboardViewModel : INotifyPropertyChanged
             if (item.Kind is ClipKind.Text or ClipKind.Html or ClipKind.FileList)
             {
                 var text = await File.ReadAllTextAsync(item.FilePath, Encoding.UTF8);
-                await _clipboard.SetTextAsync(text);
+                await _clipboard.SetTextAsync(item.Kind == ClipKind.Html ? ExtractPlainText(text) : text);
             }
             else if (item.Kind == ClipKind.Image)
             {
@@ -82,26 +83,41 @@ public sealed class ClipboardViewModel : INotifyPropertyChanged
         }
     }
 
-    internal void Reveal(ClipCardViewModel card)
+    private static string ExtractPlainText(string rawHtml)
     {
-        try
+        if (string.IsNullOrWhiteSpace(rawHtml))
         {
-            if (OperatingSystem.IsWindows())
-            {
-                Process.Start("explorer.exe", $"/select,\"{card.Item.FilePath}\"");
-            }
-            else if (OperatingSystem.IsMacOS())
-            {
-                Process.Start("open", $"-R \"{card.Item.FilePath}\"");
-            }
-            else
-            {
-                Process.Start("xdg-open", $"\"{Path.GetDirectoryName(card.Item.FilePath)}\"");
-            }
+            return string.Empty;
         }
-        catch
+
+        var normalized = rawHtml
+            .Replace("\uFEFF", string.Empty)
+            .Replace("\0", string.Empty)
+            .Replace("&nbsp;", " ")
+            .Replace("&#160;", " ")
+            .Replace("&#xA0;", " ");
+
+        normalized = Regex.Replace(normalized, "<!--.*?-->", string.Empty, RegexOptions.CultureInvariant | RegexOptions.Singleline);
+        normalized = Regex.Replace(normalized, "(?is)<br\\s*/?>|</?(div|p|li|ul|ol|tr|table|h[1-6]|blockquote|pre)[^>]*>", "\n");
+        normalized = Regex.Replace(normalized, "(?is)<(span|b|strong|i|em|u|font|code|a)[^>]*>", string.Empty);
+        normalized = Regex.Replace(normalized, "<[^>]+>", string.Empty, RegexOptions.CultureInvariant | RegexOptions.Singleline);
+
+        var decoded = WebUtility.HtmlDecode(normalized).Replace('\u00A0', ' ');
+        var lines = decoded.Replace("\r", "\n").Split('\n');
+        var cleaned = new List<string>();
+
+        foreach (var line in lines)
         {
+            var trimmed = line.TrimEnd();
+            if (string.IsNullOrWhiteSpace(trimmed))
+            {
+                continue;
+            }
+
+            cleaned.Add(trimmed);
         }
+
+        return string.Join("\n", cleaned);
     }
 
     private void TrimVisibleAutoSaveOverflow()
@@ -157,9 +173,11 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
     public string SizeDisplay => FormatBytes(_item.SizeBytes);
     public string HeadlineDisplay => $"{KindDisplay} · {SizeDisplay}";
     public bool IsPinned => _item.IsPinned;
+    public bool IsHtml => _item.Kind == ClipKind.Html;
     public bool HasThumbnail => _thumbnail is not null;
     public Bitmap? Thumbnail => _thumbnail;
     public string PinButtonText => IsPinned ? "Unpin" : "Pin";
+    public string CopyButtonText => IsHtml ? "Copy text" : "Copy";
 
     public bool IsPendingDelete
     {
@@ -195,6 +213,8 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    public string HtmlPreview => _item.Kind == ClipKind.Html ? ReadAllText(_item.FilePath) : string.Empty;
+
     internal void UpdateItem(ClipItem updated)
     {
         _item = updated;
@@ -206,7 +226,6 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
     public void Delete() => _parent.Delete(this);
     public void TogglePin() => _parent.TogglePin(this);
     public async void CopyBack() => await _parent.CopyBackAsync(this);
-    public void Reveal() => _parent.Reveal(this);
 
     public void Dispose()
     {
@@ -238,8 +257,9 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
         {
             return _item.Kind switch
             {
-                ClipKind.Text or ClipKind.Html or ClipKind.FileList => ReadHead(_item.FilePath),
-                ClipKind.Image => "[image]",
+                ClipKind.Text or ClipKind.FileList => ReadHead(_item.FilePath),
+                ClipKind.Html => ExtractVisibleText(ReadHead(_item.FilePath)),
+                ClipKind.Image => string.Empty,
                 _ => string.Empty,
             };
         }
@@ -249,13 +269,35 @@ public sealed class ClipCardViewModel : INotifyPropertyChanged, IDisposable
         }
     }
 
+    private static string ReadAllText(string path)
+    {
+        return File.ReadAllText(path, Encoding.UTF8);
+    }
+
     private static string ReadHead(string path)
     {
         var buffer = new char[TextPreviewChars];
         using var reader = new StreamReader(path, Encoding.UTF8);
         var count = reader.Read(buffer, 0, buffer.Length);
-        var text = new string(buffer, 0, count).Replace('\r', ' ').Replace('\n', ' ');
-        return count >= buffer.Length ? text + "..." : text;
+        var text = new string(buffer, 0, count)
+            .Replace("\r\n", "\n")
+            .Replace('\r', '\n');
+
+        var lines = text.Split('\n');
+        if (lines.Length > 1)
+        {
+            var joined = string.Join("\n", lines.Take(3));
+            return joined + (count >= buffer.Length ? "\n..." : string.Empty);
+        }
+
+        var trimmed = text.Trim();
+        return count >= buffer.Length ? trimmed + "..." : trimmed;
+    }
+
+    private static string ExtractVisibleText(string source)
+    {
+        var noTags = Regex.Replace(source, "<[^>]+>", string.Empty, RegexOptions.CultureInvariant);
+        return WebUtility.HtmlDecode(noTags).Replace('\r', ' ').Replace('\n', ' ').Trim();
     }
 
     private static string FormatBytes(long bytes)
