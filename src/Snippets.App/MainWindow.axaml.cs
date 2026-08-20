@@ -69,9 +69,19 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    public static bool ShouldCancelClose(WindowCloseReason closeReason, bool isShuttingDown)
+    {
+        if (isShuttingDown)
+        {
+            return false;
+        }
+
+        return closeReason is not WindowCloseReason.ApplicationShutdown and not WindowCloseReason.OSShutdown;
+    }
+
     protected override void OnClosing(WindowClosingEventArgs e)
     {
-        if (!App.IsShuttingDown)
+        if (ShouldCancelClose(e.CloseReason, App.IsShuttingDown))
         {
             e.Cancel = true;
             if (App.ShouldCloseToTray)

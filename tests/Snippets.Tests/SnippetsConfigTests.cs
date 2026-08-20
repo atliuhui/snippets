@@ -1,9 +1,28 @@
+using Avalonia.Controls;
+using Snippets.App;
 using Snippets.Core.Config;
 
 namespace Snippets.Tests;
 
 public sealed class SnippetsConfigTests
 {
+    [Theory]
+    [InlineData(WindowCloseReason.ApplicationShutdown)]
+    [InlineData(WindowCloseReason.OSShutdown)]
+    public void MainWindow_should_not_cancel_shutdown_close_reasons(WindowCloseReason closeReason)
+    {
+        Assert.False(MainWindow.ShouldCancelClose(closeReason, isShuttingDown: false));
+    }
+
+    [Theory]
+    [InlineData(WindowCloseReason.Undefined)]
+    [InlineData(WindowCloseReason.WindowClosing)]
+    [InlineData(WindowCloseReason.OwnerWindowClosing)]
+    public void MainWindow_should_cancel_user_close_reasons(WindowCloseReason closeReason)
+    {
+        Assert.True(MainWindow.ShouldCancelClose(closeReason, isShuttingDown: false));
+    }
+
     [Fact]
     public void CreateDefault_matches_readme_storage_conventions()
     {
